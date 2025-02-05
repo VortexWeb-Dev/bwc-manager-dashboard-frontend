@@ -1,22 +1,8 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Pagination from './Pagination';
-import { mockTasks } from '../mockData/data';
+import React from 'react'
 
-const TableComponent = () => {
-
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
-
-
-  
-  const totalItems = mockTasks.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-
+const UserPage = () => {
   return (
-    
-<div className="p-4 space-y-4">
+    <div className="p-4 space-y-4">
 
 <h1 className='text-3xl '>Today's Tasks</h1>
 
@@ -61,7 +47,7 @@ const TableComponent = () => {
         <h2 className="text-xl font-semibold mb-4">Agents Report</h2>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TableComponent;
+export default UserPage
