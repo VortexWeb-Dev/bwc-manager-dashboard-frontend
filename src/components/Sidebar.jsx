@@ -80,11 +80,11 @@ const Sidebar = () => {
       title: 'Office Dashboard', 
       icon: LayoutDashboard 
     },
-    { 
-      id: 'setup', 
-      title: 'Setup', 
-      icon: Wrench
-    },
+    // { 
+    //   id: 'setup', 
+    //   title: 'Setup', 
+    //   icon: Wrench
+    // },
     { 
       id: 'user', 
       title: 'User', 
@@ -158,9 +158,9 @@ const Sidebar = () => {
                     navigate('/leadslist');
                   }
 
-                  if(item.id === 'setup'){
-                    navigate('/setup');
-                  }
+                  // if(item.id === 'setup'){
+                  //   navigate('/setup');
+                  // }
 
                   if(item.id === 'user'){
                     navigate('/user');

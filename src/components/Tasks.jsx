@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Pagination from './Pagination';
-import { mockTasks } from '../mockData/data';
+// import { mockTasks } from '../mockData/data';
 
 const TableComponent = () => {
 
+  const mockTasks = []
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -15,7 +16,7 @@ const TableComponent = () => {
 
 
   return (
-    
+
 <div className="p-4 space-y-4">
 
 <h1 className='text-3xl '>Today's Tasks</h1>
@@ -35,8 +36,12 @@ const TableComponent = () => {
             </tr>
           </thead>
           <tbody>
-            {mockTasks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((row, index) => (
-              <tr key={index} className="border-b hover:bg-gray-50">
+
+            { mockTasks.length > 0 ?
+            (
+
+              mockTasks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((row, index) => (
+                <tr key={index} className="border-b hover:bg-gray-50">
                 <td className="px-4 py-2">{row.code}</td>
                 <td className="px-4 py-2">{row.date}</td>
                 <td className="px-4 py-2">{row.name}</td>
@@ -47,9 +52,18 @@ const TableComponent = () => {
                   <button className="text-blue-500 hover:text-blue-700">View</button>
                 </td>
               </tr>
-            ))}
+            ))
+            
+          ): 
+          (
+            <div className='flex justify-center items-center h-full w-full my-5 mx-[320%] '>
+              <h1 className='text-xl font-bold text-red-800'>No Tasks</h1>
+            </div>
+          )
+            }
           </tbody>
         </table>
+
       </div>
 
       {/* Pagination */}
@@ -61,7 +75,9 @@ const TableComponent = () => {
         <h2 className="text-xl font-semibold mb-4">Agents Report</h2>
       </div>
     </div>
+    
   );
 };
+
 
 export default TableComponent;
