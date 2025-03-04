@@ -1,17 +1,22 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import Sidebar from './components/Sidebar'
-import Navbar from './components/Navbar'
-import Filters from './components/Filters/FiltersModule'
-import Content from './components/Content'
-import Tasks from './components/Tasks'
-import Footer from './components/Footer'
-import MultiPieChart from './components/PieCharts/MultiCharts'
-import './App.css'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useSearchParams } from 'react-router-dom';
-import AllLeads from './Pages/AllLeads';
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
+import Sidebar from "./components/Sidebar";
+import Navbar from "./components/Navbar";
+import Filters from "./components/Filters/FiltersModule";
+import Content from "./components/Content";
+import Tasks from "./components/Tasks";
+import Footer from "./components/Footer";
+import MultiPieChart from "./components/PieCharts/MultiCharts";
+import "./App.css";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import AllLeads from "./Pages/AllLeads";
 
 function LeadsResolver() {
   const [searchParams] = useSearchParams();
@@ -19,7 +24,12 @@ function LeadsResolver() {
 
   console.log(tabName); // Log the id value to debug what it returns
 
-  if (!tabName || tabName === null || tabName === "" || typeof tabName !== "string") {
+  if (
+    !tabName ||
+    tabName === null ||
+    tabName === "" ||
+    typeof tabName !== "string"
+  ) {
     return <Navigate to="/" />;
   }
 
@@ -39,10 +49,9 @@ function App() {
               path="/home"
               element={
                 <>
-                  <div className="p-4 m-4">
+                  {/* <div className="p-4 m-4">
                     <Filters />
-                  </div>
-                  <MultiPieChart />
+                  </div> */}
                   <Content /> <Tasks />
                 </>
               }
@@ -51,7 +60,6 @@ function App() {
             <Route path="/*" element={<Navigate to="/home" />} />
           </Routes>
           <Footer />
-
         </div>
       </div>
     </Router>
