@@ -15,7 +15,6 @@ const Dashboard = () => {
       icon: "CheckCircle",
       color: "#FF5722",
     },
-    interested: { displayName: "Interested", icon: "Heart", color: "#4CAF50" },
     not_interested: {
       displayName: "Not Interested",
       icon: "ThumbsDown",
@@ -32,11 +31,6 @@ const Dashboard = () => {
       icon: "CheckSquare",
       color: "#9C27B0",
     },
-    send_message: {
-      displayName: "Send Message",
-      icon: "Mail",
-      color: "#00BCD4",
-    },
     no_answer: { displayName: "No Answer", icon: "X", color: "#E91E63" },
     invalid_number: {
       displayName: "Invalid Number",
@@ -52,21 +46,6 @@ const Dashboard = () => {
       displayName: "Call Back",
       icon: "RefreshCw",
       color: "#8BC34A",
-    },
-    late_followup: {
-      displayName: "Late Followup",
-      icon: "ArrowLeft",
-      color: "#FF5722",
-    },
-    today_followup: {
-      displayName: "Today Followup",
-      icon: "Calendar",
-      color: "#4CAF50",
-    },
-    future_followup: {
-      displayName: "Future Followup",
-      icon: "ArrowRight",
-      color: "#f44336",
     },
   };
 

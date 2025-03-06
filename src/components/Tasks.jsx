@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Pagination from './Pagination';
-// import { mockTasks } from '../mockData/data';
 
 const TableComponent = () => {
 
