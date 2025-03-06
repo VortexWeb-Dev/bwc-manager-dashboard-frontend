@@ -1,166 +1,277 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Trash2, FileX, RedoDot, PlusIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import Pagination from '../components/Pagination';
+import React, { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const TabbedReport = () => {
+const TabbedReport = ({ tabName }) => {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
-  // Tab state
+  const [activeTab, setActiveTab] = useState("allLeads");
 
-  const totalItems = 0;
-
-
-  // Form state
+  // Form state for filters (team, fromDate, toDate)
   const [formData, setFormData] = useState({
-    fromDate: '',
-    toDate: '',
-    campaign: '',
-    code: '',
-    name: '',
-    mobileNo: ''
+    team: "",
+    fromDate: "",
+    toDate: "",
   });
 
+  // Teams list
+  const [teams, setTeams] = useState([]);
+
+  // Leads data state and loading state
+  const [leadsData, setLeadsData] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   // Pagination state
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const apiUrl = import.meta.env.VITE_COLLECTION_ENDPOINT;
 
-  // Mock data for campaigns
-  const campaigns = ['Campaign 1', 'Campaign 2', 'Campaign 3'];
-  const users = ['User 1', 'User 2', 'User 3'];
+  // Mapping from tab id to the API's status key
+  const tabMapping = {
+    allLeads: "allocated",
+    dealClosed: "closed",
+    meetingBooked: "meeting_booked",
+    meetingDone: "meeting_done",
+    sendMessage: "send_message",
+    invalidNumber: "invalid_number",
+    neverAnswered: "never_answered",
+    callBack: "call_back",
+  };
 
-  // Handle form input changes
+  // Fetch teams from API
+  const fetchTeams = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/teams`);
+      const data = await response.json();
+      setTeams(data);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+    }
+  };
+
+  // Fetch leads from API with optional filters
+  const fetchLeads = async (filters = {}) => {
+    setLoading(true);
+    try {
+      let url = `${apiUrl}/leads`;
+      const params = new URLSearchParams();
+      if (filters.team) {
+        params.append("team", filters.team);
+      }
+      if (filters.fromDate) {
+        params.append("datefrom", filters.fromDate);
+      }
+      if (filters.toDate) {
+        params.append("dateto", filters.toDate);
+      }
+      const queryString = params.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+      console.log("Fetching leads from:", url);
+
+      const response = await fetch(url);
+      const data = await response.json();
+      setLeadsData(data);
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // On mount, fetch teams and initial leads (with no filters)
+  useEffect(() => {
+    fetchTeams();
+    fetchLeads();
+  }, []);
+
+  // Handle filter form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  // Handle form reset
-  const handleReset = () => {
-    setFormData({
-      fromDate: '',
-      toDate: '',
-      campaign: '',
-      user: '',
-      code: '',
-      name: '',
-      mobileNo: ''
-    });
+  // Handle filter form submit – fetch leads with filters
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setCurrentPage(1); // Reset pagination on filter submit
+    fetchLeads(formData);
   };
 
-  // Handle form submit
-  const handleSubmit = () => {
-    console.log('Form Data:', formData);
-    console.log('Active Tab:', activeTab);
+  // Handle form reset – clear filters and fetch all leads
+  const handleReset = () => {
+    setFormData({
+      team: "",
+      fromDate: "",
+      toDate: "",
+    });
+    setCurrentPage(1);
+    fetchLeads();
+  };
+
+  // Helper to compute count of leads for a given status key
+  const computeTabCount = (statusKey) => {
+    let count = 0;
+    if (leadsData && leadsData.user_lead_details) {
+      Object.values(leadsData.user_lead_details).forEach((user) => {
+        if (user[statusKey] && Array.isArray(user[statusKey])) {
+          count += user[statusKey].length;
+        }
+      });
+    }
+    return count;
+  };
+
+  const tabs = [
+    { id: "allLeads", label: "All Leads", count: computeTabCount("allocated") },
+    {
+      id: "dealClosed",
+      label: "Deal Closed",
+      count: computeTabCount("closed"),
+    },
+    {
+      id: "meetingBooked",
+      label: "Meeting Booked",
+      count: computeTabCount("meeting_booked"),
+    },
+    {
+      id: "meetingDone",
+      label: "Meeting Done",
+      count: computeTabCount("meeting_done"),
+    },
+    {
+      id: "sendMessage",
+      label: "Send Message",
+      count: computeTabCount("send_message"),
+    },
+    {
+      id: "invalidNumber",
+      label: "Invalid Number",
+      count: computeTabCount("invalid_number"),
+    },
+    {
+      id: "neverAnswered",
+      label: "Never Answered",
+      count: computeTabCount("never_answered"),
+    },
+    { id: "callBack", label: "Call Back", count: computeTabCount("call_back") },
+  ];
+
+  // Get all leads for the active tab from the fetched leadsData
+  const getActiveTabLeads = () => {
+    let allLeads = [];
+    if (leadsData && leadsData.user_lead_details) {
+      const statusKey = tabMapping[activeTab];
+      Object.values(leadsData.user_lead_details).forEach((user) => {
+        if (user[statusKey] && Array.isArray(user[statusKey])) {
+          allLeads = allLeads.concat(user[statusKey]);
+        }
+      });
+    }
+    return allLeads;
+  };
+
+  const activeLeads = getActiveTabLeads();
+
+  // Pagination calculations
+  const indexOfFirst = (currentPage - 1) * itemsPerPage;
+  const indexOfLast = currentPage * itemsPerPage;
+  const currentLeads = activeLeads.slice(indexOfFirst, indexOfLast);
+
+  // Handlers for pagination
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (indexOfLast < activeLeads.length) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  // Handle tab click: update active tab and navigate accordingly
+  const handleTabClick = (tab) => {
+    setActiveTab(tab.id);
+    navigate(
+      `/allleads?tabName=${tab.label.toLowerCase().replace(/\s+/g, "_")}`
+    );
+    setCurrentPage(1);
   };
 
   return (
     <div className="p-6 space-y-6 bg-white rounded-lg shadow">
-        <h1 className='text-3xl'>Leads List</h1>
-      {/* Tabs */}
+      <h1 className="text-3xl">
+        {tabName
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (char) => char.toUpperCase())}
+      </h1>
 
+      {/* Tabs */}
+      <div className="flex flex-wrap gap-2 border-b pb-2">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => handleTabClick(tab)}
+            className={`px-4 py-2 -mb-px ${
+              activeTab === tab.id
+                ? "border-b-2 border-blue-500 text-blue-600"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {tab.label} ({tab.count})
+          </button>
+        ))}
+      </div>
 
       {/* Filters Form */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
+        {/* Team Filter */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Team</label>
+          <select
+            name="team"
+            value={formData.team}
+            onChange={handleInputChange}
+            className="w-full p-2 border rounded-md"
+          >
+            <option value="">--All Teams--</option>
+            {teams.map((team) => (
+              <option key={team.ID} value={team.ID}>
+                {team.NAME}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* From Date */}
         <div className="space-y-1">
           <label className="text-sm font-medium">From Date</label>
-          <div className="relative">
-            <input
-              type="date"
-              name="fromDate"
-              value={formData.fromDate}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded-md pr-8"
-
-            />
-          </div>
+          <input
+            type="date"
+            name="fromDate"
+            value={formData.fromDate}
+            onChange={handleInputChange}
+            className="w-full p-2 border rounded-md"
+          />
         </div>
 
         {/* To Date */}
         <div className="space-y-1">
           <label className="text-sm font-medium">To Date</label>
-          <div className="relative">
-            <input
-              type="date"
-              name="toDate"
-              value={formData.toDate}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded-md pr-8"
-
-            />
-          </div>
-        </div>
-
-        {/* Campaign */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Campaign</label>
-          <select
-            name="campaign"
-            value={formData.campaign}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md"
-          >
-            <option value="">--All--</option>
-            {campaigns.map(campaign => (
-              <option key={campaign} value={campaign}>{campaign}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Users */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Users</label>
-          <select
-            name="user"
-            value={formData.user}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md"
-          >
-            <option value="">--All--</option>
-            {users.map(user => (
-              <option key={user} value={user}>{user}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Code */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Code</label>
           <input
-            type="text"
-            name="code"
-            value={formData.code}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md"
-          />
-        </div>
-
-        {/* Name */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Name</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md"
-          />
-        </div>
-
-        {/* Mobile No */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Mobile No</label>
-          <input
-            type="number"
-            min="0"
-            style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
-            name="mobileNo"
-            value={formData.mobileNo}
+            type="date"
+            name="toDate"
+            value={formData.toDate}
             onChange={handleInputChange}
             className="w-full p-2 border rounded-md"
           />
@@ -169,77 +280,109 @@ const TabbedReport = () => {
         {/* Buttons */}
         <div className="flex items-end gap-2">
           <button
+            type="submit"
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            Submit
+          </button>
+          <button
+            type="button"
             onClick={handleReset}
             className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
           >
             Reset
           </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-          >
-            Export
-          </button>
         </div>
-      </div>
+      </form>
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <div className='flex justify-end gap-2'>
-            <button className='h-10 w-10 bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center justify-center'><Trash2 /></button>
-            <button className='h-10 w-10 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center justify-center'><FileX /></button>
-            <button className='h-10 w-10 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center justify-center'><RedoDot /></button>
-            <button className='h-10 w-10 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center justify-center'><PlusIcon /></button>
-
-        </div>
-        <table className="min-w-full border-collapse">
+        <table className="min-w-full border-collapse mt-4">
           <thead>
             <tr className="border-b">
-
-              <th className="p-3 text-left">Code</th>
+              <th className="p-3 text-left">Title</th>
               <th className="p-3 text-left">Date</th>
               <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Status ID</th>
               <th className="p-3 text-left">Mobile</th>
-              <th className="p-3 text-left">Campaign</th>
-              <th className="p-3 text-left">Last Contact</th>
-              <th className="p-3 text-left">Comment</th>
-              <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-left">Action</th>
             </tr>
           </thead>
           <tbody>
-            {/* Table rows would be populated based on activeTab and pagination */}
+            {loading ? (
+              <tr>
+                <td colSpan="5" className="p-3 text-center">
+                  Loading...
+                </td>
+              </tr>
+            ) : currentLeads.length > 0 ? (
+              currentLeads.map((lead) => (
+                <tr key={lead.ID} className="border-b">
+                  <td className="p-3">{lead.TITLE || "N/A"}</td>
+                  <td className="p-3">
+                    {lead.DATE_CREATE
+                      ? new Date(lead.DATE_CREATE).toLocaleString()
+                      : "N/A"}
+                  </td>
+                  <td className="p-3">{lead.NAME || "N/A"}</td>
+                  <td className="p-3">{lead.STATUS_ID || "N/A"}</td>
+                  <td className="p-3">
+                    {lead.PHONE && lead.PHONE.length > 0 && lead.PHONE[0].VALUE
+                      ? lead.PHONE[0].VALUE
+                      : "N/A"}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="p-3 text-center">
+                  No leads available
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Pagination */}
-      <Pagination itemsPerPage={itemsPerPage} setItemsPerPage={setItemsPerPage} currentPage={currentPage} setCurrentPage={setCurrentPage} totalItems={totalItems} />
-      {/* <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mt-4">
         <div className="flex items-center gap-2">
           <span>Items per page:</span>
-          <select 
+          <select
             value={itemsPerPage}
-            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
             className="border rounded px-2 py-1"
           >
-            {[5, 10, 25, 50, 100].map(value => (
-              <option key={value} value={value}>{value}</option>
+            {[5, 10, 25, 50, 100].map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
             ))}
           </select>
         </div>
         <div className="flex items-center gap-4">
-          <span>0 of 0</span>
+          <span>
+            {indexOfFirst + 1} - {Math.min(indexOfLast, activeLeads.length)} of{" "}
+            {activeLeads.length}
+          </span>
           <div className="flex gap-2">
-            <button className="p-1 rounded hover:bg-gray-100 disabled:opacity-50">
+            <button
+              onClick={handlePrevPage}
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
+            >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <button className="p-1 rounded hover:bg-gray-100 disabled:opacity-50">
+            <button
+              onClick={handleNextPage}
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-50"
+            >
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>
-      </div> */}
+      </div>
     </div>
   );
 };

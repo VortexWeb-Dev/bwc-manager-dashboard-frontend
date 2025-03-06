@@ -85,21 +85,21 @@ const Sidebar = () => {
     //   title: 'Setup', 
     //   icon: Wrench
     // },
-    { 
-      id: 'user', 
-      title: 'User', 
-      icon: Users 
-    },
+    // { 
+    //   id: 'user', 
+    //   title: 'User', 
+    //   icon: Users 
+    // },
     { 
       id: 'leads', 
       title: 'Lead List', 
       icon: List 
     },
-    { 
-      id: 'reports', 
-      title: 'Reports', 
-      icon: Files 
-    },
+    // { 
+    //   id: 'reports', 
+    //   title: 'Reports', 
+    //   icon: Files 
+    // },
   ];
 
   const toggleSidebar = () => {
@@ -155,7 +155,7 @@ const Sidebar = () => {
                   }
 
                   if(item.id === 'leads'){
-                    navigate('/leadslist');
+                    navigate('/allleads?tabName=all_leads');  
                   }
 
                   // if(item.id === 'setup'){

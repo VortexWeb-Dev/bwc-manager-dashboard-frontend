@@ -18,23 +18,26 @@ import {
 import { useSearchParams } from "react-router-dom";
 import AllLeads from "./Pages/AllLeads";
 
-function LeadsResolver() {
+const LeadsResolver = () => {
   const [searchParams] = useSearchParams();
   const tabName = searchParams.get("tabName");
 
-  console.log(tabName); // Log the id value to debug what it returns
+  // console.log("tab", tabName); // Log the id value to debug what it returns
 
-  if (
-    !tabName ||
-    tabName === null ||
-    tabName === "" ||
-    typeof tabName !== "string"
-  ) {
-    return <Navigate to="/" />;
+  if (!tabName) {
+    return (
+      <>
+        <AllLeads />
+      </>
+    );
   }
 
-  return <AllLeads tabName={tabName} />;
-}
+  return (
+    <>
+      <AllLeads tabName={tabName} />
+    </>
+  );
+};
 
 function App() {
   return (
@@ -52,11 +55,12 @@ function App() {
                   {/* <div className="p-4 m-4">
                     <Filters />
                   </div> */}
-                  <Content /> <Tasks />
+                  <Content />
+                  {/* <Tasks /> */}
                 </>
               }
             />
-            <Route path="/leadslist" element={<AllLeads />} />
+            <Route path="/allleads" element={<LeadsResolver />} />
             <Route path="/*" element={<Navigate to="/home" />} />
           </Routes>
           <Footer />
